@@ -1,0 +1,46 @@
+---
+title: "Social Brain Representation"
+sidebarTitle: "Social Brain"
+description: "Hackathon representation target for social memory built on Honcho-inspired primitives."
+icon: "brain"
+---
+
+This hackathon branch explores **social memory**: agent memory that represents people, relationships, beliefs, commitments, trust, conflict, and perspective.
+
+Honcho is the original inspiration and infrastructure base for the repo. This project uses Honcho's peer/session/message/representation model as the foundation, then adds a social-brain representation layer on top.
+
+## Requirements Source
+
+The full representation target is tracked in the repository at:
+
+- [`social-brain-1-representation.md`](../../../../social-brain-1-representation.md)
+
+That file is the working hackathon spec. It defines the social-memory fields, examples, acceptance criteria, and demo goals.
+
+## Representation Summary
+
+A social observation can include:
+
+| Field             | Purpose                                                                       |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `content`         | Human-readable observation.                                                   |
+| `social_category` | Identity, preference, relationship, belief, commitment, trust, conflict, etc. |
+| `subject`         | Primary entity the observation is about.                                      |
+| `object`          | Related entity in the social edge.                                            |
+| `relation_type`   | Edge/action label.                                                            |
+| `confidence`      | `high`, `medium`, or `low`.                                                   |
+| `perspective`     | Attribution such as “Alice believes” or “Bob reported.”                       |
+
+## Why It Matters
+
+A normal memory system may retrieve the sentence “I think Dana is upset with me.” A social-brain memory should preserve the more useful structure:
+
+```text
+Alice believes Dana may be upset with her. [belief, low confidence, Alice's perspective]
+```
+
+That distinction prevents the agent from treating Alice's concern as objective truth while still making the concern available at the right moment.
+
+## Hackathon Win Condition
+
+The demo should prove that the agent remembers the social situation, not just the words. It should recall relationships, commitments, and beliefs in a way that feels socially aware and useful.

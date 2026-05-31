@@ -58,6 +58,30 @@ class ObservationMetadata(BaseModel):
 
 class ExplicitObservationBase(BaseModel):
     content: str = Field(description="The explicit observation")
+    social_category: str | None = Field(
+        default=None,
+        description="Optional social-memory category, such as identity, preference, relationship, emotion, intention, belief, commitment, role, trust, conflict, or group_context.",
+    )
+    subject: str | None = Field(
+        default=None,
+        description="Optional peer/entity the observation is primarily about.",
+    )
+    object: str | None = Field(
+        default=None,
+        description="Optional peer/entity that the social observation points to.",
+    )
+    relation_type: str | None = Field(
+        default=None,
+        description="Optional relationship or social edge type, for example friend, manager, trusts, avoids, promised, or believes.",
+    )
+    confidence: str | None = Field(
+        default=None,
+        description="Optional confidence label for socially inferred or perspectival observations: high, medium, or low.",
+    )
+    perspective: str | None = Field(
+        default=None,
+        description="Optional perspective qualifier for theory-of-mind observations, e.g. 'Alice believes' or 'Alice reported'.",
+    )
 
 
 class DeductiveObservationBase(BaseModel):
@@ -156,6 +180,22 @@ class ExplicitObservation(ExplicitObservationBase, ObservationMetadata):
             and self.created_at == other.created_at
             and self.session_name == other.session_name
         )
+
+    def social_metadata(self) -> dict[str, str]:
+        """Return populated social-memory metadata fields for persistence."""
+        metadata: dict[str, str] = {}
+        for field_name in (
+            "social_category",
+            "subject",
+            "object",
+            "relation_type",
+            "confidence",
+            "perspective",
+        ):
+            value = getattr(self, field_name)
+            if isinstance(value, str) and value.strip():
+                metadata[field_name] = value.strip()
+        return metadata
 
 
 class DeductiveObservation(DeductiveObservationBase, ObservationMetadata):
@@ -528,7 +568,15 @@ class Representation(BaseModel):
             for obs in self.explicit:
                 # Don't need IDs for explicit as these are the lowest level of reasoning.
                 # id_prefix = f"[id:{obs.id}] " if include_ids and obs.id else ""
-                parts.append(f"{obs}")
+                social_bits: list[str] = []
+                if obs.social_category:
+                    social_bits.append(f"category={obs.social_category}")
+                if obs.relation_type:
+                    social_bits.append(f"relation={obs.relation_type}")
+                if obs.confidence:
+                    social_bits.append(f"confidence={obs.confidence}")
+                suffix = f" ({'; '.join(social_bits)})" if social_bits else ""
+                parts.append(f"{obs}{suffix}")
             parts.append("")
 
         # Add deductive observations
@@ -593,6 +641,12 @@ class Representation(BaseModel):
                         doc.internal_metadata.get("message_ids", [])
                     ),
                     session_name=doc.session_name,
+                    social_category=doc.internal_metadata.get("social_category"),
+                    subject=doc.internal_metadata.get("subject"),
+                    object=doc.internal_metadata.get("object"),
+                    relation_type=doc.internal_metadata.get("relation_type"),
+                    confidence=doc.internal_metadata.get("confidence"),
+                    perspective=doc.internal_metadata.get("perspective"),
                 )
                 for doc in documents
                 if doc.level == "explicit"
@@ -670,6 +724,12 @@ class Representation(BaseModel):
                     created_at=created_at,
                     message_ids=message_ids,
                     session_name=session_name,
+                    social_category=e.social_category,
+                    subject=e.subject,
+                    object=e.object,
+                    relation_type=e.relation_type,
+                    confidence=e.confidence,
+                    perspective=e.perspective,
                 )
                 for e in prompt_representation.explicit
             ],

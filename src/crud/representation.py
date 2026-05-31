@@ -174,10 +174,19 @@ class RepresentationManager:
                 obs_content = obs.content
                 obs_premises = None
 
+            social_metadata = (
+                obs.social_metadata() if isinstance(obs, ExplicitObservation) else {}
+            )
             metadata: schemas.DocumentMetadata = schemas.DocumentMetadata(
                 message_ids=message_ids,
                 premises=obs_premises,
                 message_created_at=format_datetime_utc(message_created_at),
+                social_category=social_metadata.get("social_category"),
+                subject=social_metadata.get("subject"),
+                object=social_metadata.get("object"),
+                relation_type=social_metadata.get("relation_type"),
+                confidence=social_metadata.get("confidence"),
+                perspective=social_metadata.get("perspective"),
             )
 
             documents_to_create.append(

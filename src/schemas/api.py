@@ -9,7 +9,6 @@ import ipaddress
 from typing import Annotated, Any, Self, cast
 from urllib.parse import urlparse
 
-import tiktoken
 from pydantic import (
     AliasChoices,
     BaseModel,
@@ -29,6 +28,7 @@ from src.schemas.configuration import (
     SessionPeerConfig,
     WorkspaceConfiguration,
 )
+from src.utils.tokens import encode_text
 
 # ---------------------------------------------------------------------------
 # Metadata validation helpers
@@ -261,10 +261,7 @@ class MessageCreate(MessageBase):
 
     @model_validator(mode="after")
     def validate_and_set_token_count(self) -> Self:
-        encoding = tiktoken.get_encoding("o200k_base")
-        encoded_message = encoding.encode(self.content)
-
-        self._encoded_message = encoded_message
+        self._encoded_message = encode_text(self.content)
         return self
 
 
@@ -497,9 +494,7 @@ class ConclusionCreate(BaseModel):
     @model_validator(mode="after")
     def validate_token_count(self) -> Self:
         """Validate that content doesn't exceed embedding token limit."""
-        encoding = tiktoken.get_encoding("o200k_base")
-        tokens = encoding.encode(self.content)
-        self._token_count = len(tokens)
+        self._token_count = len(encode_text(self.content))
 
         if self._token_count > settings.EMBEDDING.MAX_INPUT_TOKENS:
             raise ValueError(

@@ -13,21 +13,22 @@
 [![NPM version](https://img.shields.io/npm/v/@honcho-ai/sdk.svg)](https://npmjs.org/package/@honcho-ai/sdk)
 [![Discord](https://img.shields.io/discord/1016845111637839922?style=flat&logo=discord&logoColor=23ffffff&label=Plastic%20Labs&labelColor=235865F2)](https://discord.gg/honcho)
 
-**Honcho is memory infrastructure for building stateful agents that understand changing people, agents, groups, projects, and ideas over time.**
+**Honcho is social-memory infrastructure: it helps agents remember people, relationships, beliefs, commitments, preferences, and changing context over time.**
 
-Store messages and events, let Honcho reason in the background, then query peer representations, session context, search results, or natural-language insights from any model or framework. Use it managed at [api.honcho.dev](https://api.honcho.dev) or self-host the FastAPI server yourself.
+Instead of treating memory as a bag of retrieved chunks, Honcho turns conversations and events into structured social understanding. It tracks who said what, who believes what, how peers relate to one another, what commitments exist, and which facts are self-reported versus perspectival. Query those memories as peer representations, session context, search results, or natural-language insights from any model or framework. Use it managed at [api.honcho.dev](https://api.honcho.dev) or self-host the FastAPI server yourself.
 
-Using Honcho as your memory system will earn your agents higher retention, more trust, and help you build data moats to out-compete incumbents.
+Use Honcho when your product or agent needs durable social context: user preferences, team dynamics, assistant identity, theory-of-mind reasoning, relationship-aware personalization, and memory that becomes more useful as interactions accumulate.
 
 > Honcho has defined the Pareto Frontier of Agent Memory. Watch the [video](https://x.com/honchodotdev/status/2002090546521911703?s=20), check out our [evals page](https://honcho.dev/evals/), and read the [blog post](https://blog.plasticlabs.ai/research/Benchmarking-Honcho) for more detail.
 
 ## Contents
 
 - [Start Here](#start-here)
-- [Why Honcho](#why-honcho)
-- [The Honcho Loop](#the-honcho-loop)
+- [Why Social Memory](#why-social-memory)
+- [The Social Memory Loop](#the-social-memory-loop)
+- [Social Memory Model](#social-memory-model)
 - [Quickstart](#quickstart)
-- [What Honcho Gives You](#what-honcho-gives-you)
+- [What Social Memory Gives You](#what-social-memory-gives-you)
 - [Integrations](#integrations)
 - [Core Concepts](#core-concepts)
 - [Benchmarks & Evals](#benchmarks--evals)
@@ -43,30 +44,45 @@ The Honcho project is split between several repositories, with this one hosting 
 
 ## Start Here
 
-| I want to...                           | Path                                                       | Get started                   |
-| -------------------------------------- | ---------------------------------------------------------- | ----------------------------- |
-| Give my coding agent persistent memory | Claude Code, OpenCode, OpenClaw, Hermes, or any MCP client | [Integrations](#integrations) |
-| Add memory to my product               | Python or TypeScript SDK                                   | [Quickstart](#quickstart)     |
-| Self-host Honcho                       | Docker / local development                                 | [Self-hosting](#self-hosting) |
+| I want to...                                | Path                                                       | Get started                   |
+| ------------------------------------------- | ---------------------------------------------------------- | ----------------------------- |
+| Give my coding agent social memory          | Claude Code, OpenCode, OpenClaw, Hermes, or any MCP client | [Integrations](#integrations) |
+| Add relationship-aware memory to my product | Python or TypeScript SDK                                   | [Quickstart](#quickstart)     |
+| Self-host social-memory infrastructure      | Docker / local development                                 | [Self-hosting](#self-hosting) |
 
-## Why Honcho
+## Why Social Memory
 
-| Capability              | What it means                                                                        |
-| ----------------------- | ------------------------------------------------------------------------------------ |
-| Reasoning-first memory  | Extracts conclusions from conversations and events, not just matching chunks.        |
-| Peer-centric model      | Tracks users, agents, groups, projects, and ideas as entities that change over time. |
-| Multi-peer perspective  | Models what one peer knows about another when configured.                            |
-| Managed or self-hosted  | Use `api.honcho.dev` or run the FastAPI server yourself.                             |
-| Agent-tool integrations | MCP, Claude Code, OpenCode, OpenClaw, Hermes, Cursor-compatible clients.             |
+Most agent memory systems remember _content_. Social agents need to remember _context_: who a person is, what they care about, what they promised, who else matters, what they believe about others, and how those facts change over time.
 
-## The Honcho Loop
+| Social-memory capability       | What it means                                                                                                                     |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Relationship memory            | Stores relationship facts such as manager, teammate, friend, customer, mentor, trust, affinity, or conflict.                      |
+| Perspective tracking           | Separates objective facts from perspectival facts like “Alice believes Bob is upset” or “Sam reported that Dana owns the launch.” |
+| Commitments and intentions     | Captures promises, plans, goals, reminders, and obligations so agents can follow up later.                                        |
+| Preference and identity memory | Maintains durable facts about how a person works, learns, communicates, decides, and identifies.                                  |
+| Multi-peer theory of mind      | Models what one peer knows or believes about another when `observe_others` is configured.                                         |
+| Reasoning-first recall         | Extracts conclusions from interactions instead of only retrieving similar text chunks.                                            |
 
-1. **Store** conversations, events, documents, or tool traces as messages on a session.
-2. **Reason** — Honcho processes the queue in the background and updates peer representations.
-3. **Query** — ask Honcho for context, search results, peer representations, or a natural-language answer.
-4. **Inject** — drop the result into any LLM call or agent framework.
+## The Social Memory Loop
 
-Concretely: workspaces hold peers, peers participate in sessions, messages live on sessions, and Honcho builds a per-peer representation that you query through the [Chat Endpoint](https://honcho.dev/docs/v3/documentation/features/chat) or directly.
+1. **Observe** conversations, events, documents, or tool traces as messages on a session.
+2. **Extract social facts** — Honcho processes the queue in the background and derives explicit observations, including social-memory metadata such as category, subject, object, relation, confidence, and perspective.
+3. **Consolidate** — background reasoning can reinforce, deduplicate, summarize, and generalize memories into peer representations and peer cards.
+4. **Recall** — ask for a representation, session context, search results, or a natural-language answer grounded in long-term social context.
+5. **Inject** — drop the recalled memory into any LLM call or agent framework.
+
+Concretely: workspaces hold peers, peers participate in sessions, messages live on sessions, and Honcho builds observer/observed peer representations that you query through the [Chat Endpoint](https://honcho.dev/docs/v3/documentation/features/chat) or directly.
+
+## Social Memory Model
+
+Honcho represents social memory as conclusions about **peers**. A peer can be a human, agent, team, project, organization, or other entity your application needs to understand. The important distinction is perspective:
+
+- **Self memory**: `observer == observed`, e.g. Alice’s own representation contains “Alice prefers concise status updates.”
+- **Cross-peer memory**: `observer != observed`, e.g. an assistant’s representation of Alice contains “Alice trusts Bob with launch planning.”
+- **Theory-of-mind memory**: a peer’s belief about another peer is preserved as a belief, not silently promoted to objective truth, e.g. “Alice believes Dana may be upset with her.”
+- **Social metadata**: explicit observations can carry fields such as `social_category`, `subject`, `object`, `relation_type`, `confidence`, and `perspective` so relationship-aware products can filter and explain memory.
+
+Typical social categories include identity, preference, relationship, emotion, intention, belief, commitment, role, trust, conflict, and group context.
 
 ## Quickstart
 
@@ -91,19 +107,21 @@ honcho = Honcho(
     api_key=os.environ["HONCHO_API_KEY"],
 )
 
-# 1. Store: peers and messages on a session
+# 1. Observe: peers and socially meaningful messages on a session
 alice = honcho.peer("alice")
-tutor = honcho.peer("tutor")
+assistant = honcho.peer("assistant")
 session = honcho.session("session-1")
 session.add_messages([
-    alice.message("Hey there — can you help me with my math homework?"),
-    tutor.message("Absolutely. Send me your first problem!"),
+    alice.message("Bob is my manager, and I trust him with launch planning."),
+    alice.message("I think Dana may be upset with me after yesterday's review."),
+    alice.message("Please remind me to send Priya the contract on Friday."),
 ])
 
-# 2. Reason: happens asynchronously in the background.
+# 2. Reason: happens asynchronously in the background. Honcho extracts
+# relationship, belief, trust, and commitment memory while preserving perspective.
 
-# 3. Query: ask Honcho what it knows, or pull prompt-ready context.
-answer = alice.chat("What learning styles does the user respond to best?")
+# 3. Recall: ask Honcho what social context matters, or pull prompt-ready context.
+answer = alice.chat("What should my assistant remember about my work relationships?")
 context = session.context(summary=True, tokens=10_000)
 
 # 4. Inject: hand the context to your model of choice.
@@ -111,7 +129,7 @@ from openai import OpenAI
 client = OpenAI()
 completion = client.chat.completions.create(
     model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
-    messages=context.to_openai(assistant=tutor),
+    messages=context.to_openai(assistant=assistant),
 )
 ```
 
@@ -132,38 +150,39 @@ const honcho = new Honcho({
 });
 
 const alice = await honcho.peer("alice");
-const tutor = await honcho.peer("tutor");
+const assistant = await honcho.peer("assistant");
 const session = await honcho.session("session-1");
 await session.addMessages([
-  alice.message("Hey there — can you help me with my math homework?"),
-  tutor.message("Absolutely. Send me your first problem!"),
+  alice.message("Bob is my manager, and I trust him with launch planning."),
+  alice.message("I think Dana may be upset with me after yesterday's review."),
+  alice.message("Please remind me to send Priya the contract on Friday."),
 ]);
 
 const answer = await alice.chat(
-  "What learning styles does the user respond to best?",
+  "What should my assistant remember about my work relationships?",
 );
 const context = await session.context({ summary: true, tokens: 10_000 });
 
 const openai = new OpenAI();
 const completion = await openai.chat.completions.create({
   model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-  messages: context.toOpenAI({ assistant: tutor }),
+  messages: context.toOpenAI({ assistant }),
 });
 ```
 
 > **Note:** background reasoning is asynchronous. Newly-added messages may take a moment to be reflected in chat/representation responses; for low-latency reads, use the [`representation`](https://honcho.dev/docs/v3/documentation/features/representation) endpoint.
 
-## What Honcho Gives You
+## What Social Memory Gives You
 
-| Need                               | API                                                             |
-| ---------------------------------- | --------------------------------------------------------------- |
-| Save interaction history           | `session.add_messages(...)`                                     |
-| Ask what Honcho knows about a peer | `peer.chat(...)`                                                |
-| Get prompt-ready context           | `session.context(...).to_openai(...)` / `.to_anthropic(...)`    |
-| Hybrid search (BM25 + vector)      | `peer.search(...)`, `session.search(...)`, `honcho.search(...)` |
-| Low-latency static representations | `peer.representation(...)`, `session.representation(...)`       |
-| Import documents                   | `session.upload_file(...)`                                      |
-| Inspect background processing      | `honcho.queue_status(...)`                                      |
+| Social-memory need                           | API                                                             |
+| -------------------------------------------- | --------------------------------------------------------------- |
+| Save conversations and social events         | `session.add_messages(...)`                                     |
+| Ask what Honcho knows about someone          | `peer.chat(...)`                                                |
+| Retrieve a relationship-aware representation | `peer.representation(...)`, `session.representation(...)`       |
+| Get prompt-ready social context              | `session.context(...).to_openai(...)` / `.to_anthropic(...)`    |
+| Search memories and source messages          | `peer.search(...)`, `session.search(...)`, `honcho.search(...)` |
+| Import docs, notes, or CRM-style records     | `session.upload_file(...)`                                      |
+| Inspect background memory processing         | `honcho.queue_status(...)`                                      |
 
 See the full [SDK Reference](https://honcho.dev/docs/v3/documentation/reference/sdk) and [API Reference](https://honcho.dev/docs/v3/api-reference/introduction).
 
@@ -234,7 +253,7 @@ The same `claude mcp add` form (or its client-specific equivalent) works in any 
 
 ## Core Concepts
 
-Honcho organises everything around **peers** — humans and AI agents alike are first-class entities. The peer model enables:
+Honcho organises social memory around **peers** — humans and AI agents alike are first-class entities. The peer model enables:
 
 - Multi-participant sessions with mixed human and AI agents
 - Configurable observation settings (which peers observe which others)
@@ -250,8 +269,8 @@ Peers exchange messages within sessions; Honcho reasons over those messages to b
 
 What you query out of Honcho:
 
-- **Conclusions** — what Honcho has extracted about a peer (deductive and inductive). Exposed via the [conclusions API](https://honcho.dev/docs/v3/api-reference/introduction).
-- **Representations** — static, low-latency snapshots of what Honcho knows about a peer (optionally session-scoped).
+- **Conclusions** — what Honcho has extracted about a peer, including social facts, deductive conclusions, and inductive patterns. Exposed via the [conclusions API](https://honcho.dev/docs/v3/api-reference/introduction).
+- **Representations** — static, low-latency snapshots of what Honcho knows about a peer, including relationship and perspective-aware social context (optionally session-scoped).
 - **Peer Cards** — compact identity summaries.
 - **Session context / summaries** — prompt-ready bundles for long-running conversations.
 

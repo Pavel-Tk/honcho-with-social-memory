@@ -1,5 +1,7 @@
 import datetime
+from typing import cast
 
+from src import models
 from src.utils.representation import (
     DeductiveObservation,
     ExplicitObservation,
@@ -106,3 +108,82 @@ def test_prompt_representation_conversion():
     # (they would be created directly by the Dreamer via the create_observations tool)
     assert len(rep.deductive) == 0
     assert rep.explicit[0].created_at == timestamp
+
+
+def test_social_memory_fields_survive_prompt_conversion_and_markdown():
+    """Social-brain metadata from structured Deriver output is preserved."""
+    pr = PromptRepresentation(
+        explicit=[
+            ExplicitObservationBase(
+                content="Alice trusts Bob with launch planning",
+                social_category="trust",
+                subject="Alice",
+                object="Bob",
+                relation_type="trusts",
+                confidence="high",
+                perspective="Alice stated",
+            )
+        ]
+    )
+    timestamp = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+
+    rep = Representation.from_prompt_representation(
+        pr,
+        message_ids=[1],
+        session_name="s",
+        created_at=timestamp,
+    )
+
+    obs = rep.explicit[0]
+    assert obs.social_category == "trust"
+    assert obs.subject == "Alice"
+    assert obs.object == "Bob"
+    assert obs.relation_type == "trusts"
+    assert obs.confidence == "high"
+    assert obs.perspective == "Alice stated"
+    assert obs.social_metadata() == {
+        "social_category": "trust",
+        "subject": "Alice",
+        "object": "Bob",
+        "relation_type": "trusts",
+        "confidence": "high",
+        "perspective": "Alice stated",
+    }
+
+    md = rep.format_as_markdown()
+    assert "category=trust" in md
+    assert "relation=trusts" in md
+    assert "confidence=high" in md
+
+
+def test_social_memory_fields_survive_document_conversion():
+    """Stored document metadata hydrates social-brain fields on explicit observations."""
+    timestamp = datetime.datetime(2025, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+
+    class DocumentStub:
+        id: str = "doc_social"
+        created_at: datetime.datetime = timestamp
+        content: str = "Alice believes Dana may be upset with them"
+        level: str = "explicit"
+        session_name: str = "s"
+        source_ids: list[str] | None = None
+        internal_metadata: dict[str, object] = {
+            "message_ids": [1],
+            "message_created_at": "2025-01-01T12:00:00+00:00",
+            "social_category": "belief",
+            "subject": "Alice",
+            "object": "Dana",
+            "relation_type": "believes",
+            "confidence": "low",
+            "perspective": "Alice believes",
+        }
+
+    rep = Representation.from_documents(cast("list[models.Document]", [DocumentStub()]))
+
+    obs = rep.explicit[0]
+    assert obs.social_category == "belief"
+    assert obs.subject == "Alice"
+    assert obs.object == "Dana"
+    assert obs.relation_type == "believes"
+    assert obs.confidence == "low"
+    assert obs.perspective == "Alice believes"

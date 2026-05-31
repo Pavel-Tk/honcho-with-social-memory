@@ -54,7 +54,27 @@ class DocumentMetadata(BaseModel):
     )
     confidence: str | None = Field(
         default=None,
-        description="Confidence level (high, medium, low) -- only applicable for inductive documents",
+        description="Confidence level (high, medium, low) -- applicable for inductive and social-memory documents",
+    )
+    social_category: str | None = Field(
+        default=None,
+        description="Social-memory category for explicit observations (identity, preference, relationship, emotion, intention, belief, commitment, role, trust, conflict, group_context, etc.)",
+    )
+    subject: str | None = Field(
+        default=None,
+        description="Peer or entity the social-memory observation is primarily about",
+    )
+    object: str | None = Field(
+        default=None,
+        description="Optional peer or entity that the social-memory observation points to",
+    )
+    relation_type: str | None = Field(
+        default=None,
+        description="Optional relationship/social edge type for social-memory observations",
+    )
+    perspective: str | None = Field(
+        default=None,
+        description="Optional perspective qualifier for theory-of-mind observations",
     )
 
 
